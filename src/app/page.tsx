@@ -14,6 +14,9 @@ import NavBar from "@/components/NavBar"; // New Navbar
 import MilkyWayEffect from "@/components/MilkyWayEffect";
 import TwinklingStars from "@/components/TwinklingStars";
 import DraggableScrollContainer from "@/components/DraggableScrollContainer";
+import { useSectionCAnimation } from "@/hooks/useSectionCAnimation";
+import { useSectionDAnimation } from "@/hooks/useSectionDAnimation";
+import { useSectionEAnimation } from "@/hooks/useSectionEAnimation";
 
 // --- Local Preview Components ---
 
@@ -204,6 +207,22 @@ export default function HomePage() {
   const titleY = useTransform(scrollYProgress, [0.8, 1], ["0%", "-20%"]);
   const subY = useTransform(scrollYProgress, [0.8, 1], ["0%", "-30%"]);
 
+  // --- Section C Animation ---
+  const sectionCRef = useRef<HTMLElement>(null);
+  const sectionCAnimation = useSectionCAnimation(sectionCRef);
+
+  // --- Section D Animation ---
+  const sectionDRef = useRef<HTMLElement>(null);
+  const sectionDAnimation = useSectionDAnimation(sectionDRef, GENRES.length, {
+    mobile: 2,
+    tablet: 3,
+    desktop: 4,
+  });
+
+  // --- Section E Animation ---
+  const sectionERef = useRef<HTMLElement>(null);
+  const sectionEAnimation = useSectionEAnimation(sectionERef, 4);
+
   return (
     <>
       <CustomCursor isActive={true} />
@@ -238,12 +257,12 @@ export default function HomePage() {
               이 세상을 바늘로 그리는 사람들
             </motion.p>
 
-            <motion.span
+            <motion.div
               style={{ opacity: subOpacity2, y: subY }}
               className="ml-4 md:ml-6 lg:ml-8 mt-2 text-gold-antique text-xs md:text-sm lg:text-sm tracking-[0.2em] block mx-4 md:mx-6 lg:mx-8"
             >
               ARTIST COLLECTIVE · INCHEON
-            </motion.span>
+            </motion.div>
           </div>
 
           {/* Section A - Hero (Background Only) */}
@@ -362,7 +381,7 @@ export default function HomePage() {
             {/* BG Video Container */}
             <div className="absolute inset-0">
               <video
-                className="absolute inset-0 w-full h-full object-cover opacity-80"
+                className="absolute inset-0 w-full h-full object-cover opacity-100"
                 autoPlay
                 muted
                 loop
@@ -370,8 +389,8 @@ export default function HomePage() {
               >
                 <source src="/placeholders/arirang.mp4" type="video/mp4" />
               </video>
-              {/* Dark Overlay (70% Black) */}
-              <div className="absolute inset-0 bg-black/70"></div>
+              {/* Dark Overlay (58% Black) */}
+              <div className="absolute inset-0 bg-black/58"></div>
               <div className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(181,154,90,0.1),transparent_70%)] mix-blend-overlay"></div>
             </div>
           </section>
@@ -379,6 +398,7 @@ export default function HomePage() {
 
         {/* Scene C - Event (Float Glass Panel) */}
         <section
+          ref={sectionCRef}
           className="min-h-screen event-section flex items-center justify-center py-32 relative perspective-1000"
           id="section-c"
         >
@@ -402,26 +422,45 @@ export default function HomePage() {
           `}</style>
           <div className="w-full max-w-6xl px-4 sm:px-6">
             {/* Header floating outside - Left Aligned & Standardized */}
-            <div className="mb-12">
-              <ScrollReveal>
-                <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
-                  이달의 이벤트
-                </h2>
-                <span className="block text-gold-active text-base tracking-[0.5em] uppercase mt-4 font-light opacity-80">
-                  MONTHLY DROPS
-                </span>
-              </ScrollReveal>
-            </div>
+            <motion.div
+              className="mb-12"
+              animate={{ opacity: sectionCAnimation.titleOpacity }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
+                이달의 이벤트
+              </h2>
+              <span className="block text-gold-active text-base tracking-[0.5em] uppercase mt-4 font-light opacity-80">
+                MONTHLY DROPS
+              </span>
+            </motion.div>
 
             {/* Main Glass Panel */}
             <div className="glass-panel-heavy p-6 sm:p-10">
 
               {/* Horizontal Scroll Grid (2 rows) */}
-              <div className="w-full mb-8">
+              <motion.div
+                className="w-full mb-8"
+                animate={{
+                  opacity: sectionCAnimation.cardsOpacity,
+                  scale: sectionCAnimation.cardsScale
+                }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
                 <DraggableScrollContainer className="flex overflow-x-auto pb-4 gap-4 scrollbar-hide snap-x">
                   <div className="grid grid-rows-1 grid-flow-col gap-4 w-max">
-                    {MOCK_PORTFOLIO.slice(0, 16).map((item) => (
-                      <div key={item.id} className="glass-card-hover w-[180px] sm:w-[220px] aspect-[4/5] relative rounded-lg group snap-start">
+                    {MOCK_PORTFOLIO.slice(0, 16).map((item, index) => (
+                      <motion.div
+                        key={item.id}
+                        className="glass-card-hover w-[180px] sm:w-[220px] aspect-[4/5] relative rounded-lg group snap-start"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{
+                          delay: sectionCAnimation.getCardDelay(index),
+                          duration: 0.5,
+                          ease: "easeOut"
+                        }}
+                      >
                         <Image
                           src={item.image}
                           alt={item.artist}
@@ -432,14 +471,14 @@ export default function HomePage() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
                           <span className="text-xs text-white/80 font-medium">{item.artist}</span>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </DraggableScrollContainer>
-              </div>
+              </motion.div>
 
               {/* Notice Box */}
-              <div className="p-6 rounded-xl bg-black/50 border border-gold-soft/30">
+              <div className="p-6 rounded-xl bg-black/50 border border-gold-soft/30 mb-8">
                 <h3 className="text-gold-active font-bold mb-4 tracking-widest text-sm uppercase">Notice</h3>
                 <ul className="text-sm text-[#D6BE8A]/90 space-y-3 leading-relaxed font-light">
                   <li className="flex items-start gap-3">
@@ -452,12 +491,29 @@ export default function HomePage() {
                   </li>
                 </ul>
               </div>
+
+              {/* CTA Button */}
+              <motion.div
+                className="text-center"
+                animate={{ opacity: sectionCAnimation.ctaOpacity }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                <Link href="/gallery?tab=portfolio">
+                  <button className="group relative px-10 py-4 sm:px-14 sm:py-5 rounded-full overflow-hidden bg-gold-soft/5 border border-gold-soft hover:border-gold-active hover:shadow-[0_0_20px_rgba(214,190,138,0.3)] text-gold-active transition-all duration-500">
+                    <span className="absolute inset-0 w-full h-full bg-gold-soft/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-out"></span>
+                    <span className="relative z-10 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase">
+                      View All Events
+                    </span>
+                  </button>
+                </Link>
+              </motion.div>
             </div>
           </div>
         </section>
 
         {/* Scene D - Genre (Floating Tiles) */}
         <section
+          ref={sectionDRef}
           className="min-h-screen genre-section flex items-center justify-center py-32 relative"
           id="section-d"
         >
@@ -481,11 +537,22 @@ export default function HomePage() {
           `}</style>
           <div className="w-full max-w-6xl px-4 sm:px-6">
             <div className="flex flex-col items-start mb-12">
-              <ScrollReveal>
+              <motion.div
+                animate={{ opacity: sectionDAnimation.titleOpacity }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                style={{ clipPath: sectionDAnimation.titleClipPath }}
+                className="relative"
+              >
                 <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
                   STYLES
                 </h2>
-              </ScrollReveal>
+                {/* Underline for backward scroll */}
+                <motion.div
+                  className="absolute bottom-0 left-0 h-[2px] bg-[#D6BE8A]"
+                  animate={{ width: `${sectionDAnimation.titleUnderlineWidth}%` }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+              </motion.div>
             </div>
 
             {/* Floating Tiles Container */}
@@ -494,13 +561,32 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-[#3A2A1F]/20 blur-[100px] rounded-full pointer-events-none"></div>
 
               <div className="glass-panel-heavy p-8 sm:p-12">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {GENRES.map((g, i) => (
-                    <div key={g} style={{ transitionDelay: `${i * 50}ms` }}>
-                      <GenrePreviewCard genre={g} />
-                    </div>
-                  ))}
-                </div>
+                <motion.div
+                  className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 ${sectionDAnimation.gridSpacing} ${sectionDAnimation.gridAlignment}`}
+                  animate={{
+                    gap: sectionDAnimation.gridSpacing === "gap-3" ? "0.75rem" : "1.5rem",
+                  }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                >
+                  {GENRES.map((g, i) => {
+                    // Calculate row index (0-based) using hook's currentColumns
+                    const rowIndex = Math.floor(i / sectionDAnimation.currentColumns);
+
+                    return (
+                      <motion.div
+                        key={g}
+                        animate={{ opacity: sectionDAnimation.getRowOpacity(rowIndex) }}
+                        transition={{
+                          delay: sectionDAnimation.getRowDelay(rowIndex),
+                          duration: 0.5,
+                          ease: "easeOut",
+                        }}
+                      >
+                        <GenrePreviewCard genre={g} />
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
               </div>
 
               <div className="mt-12 text-center">
@@ -514,6 +600,7 @@ export default function HomePage() {
 
         {/* Scene E - Consultation Flow (Grounded) */}
         <section
+          ref={sectionERef}
           className="min-h-[80vh] flow-section flex items-center justify-center py-32 relative"
           id="section-e"
         >
@@ -536,58 +623,79 @@ export default function HomePage() {
             }
           `}</style>
           <div className="w-full max-w-6xl px-4 sm:px-6">
-            <div className="flex flex-col items-start mb-16">
-              <ScrollReveal>
-                <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
-                  Consultation Flow
-                </h2>
-                <span className="block text-gold-soft/80 text-sm sm:text-base tracking-[0.05em] mt-6 font-light break-keep">
-                  모든 시술은 대면 상담을 통해 결정됩니다.
-                </span>
-              </ScrollReveal>
-            </div>
+            {/* Title with pinning effect */}
+            <motion.div
+              className={`flex flex-col items-start mb-16 ${sectionEAnimation.titlePinned ? "sticky top-1/2 -translate-y-1/2 z-20" : ""
+                }`}
+              animate={{ opacity: sectionEAnimation.titleOpacity }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
+                Consultation Flow
+              </h2>
+              <span className="block text-gold-soft/80 text-sm sm:text-base tracking-[0.05em] mt-6 font-light break-keep">
+                모든 시술은 대면 상담을 통해 결정됩니다.
+              </span>
+
+              {/* Progress Indicator (only visible during backward scroll) */}
+              {sectionEAnimation.showProgressIndicator && (
+                <motion.div
+                  className="mt-6 w-full max-w-md"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="h-1 bg-gold-soft/20 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gold-active"
+                      animate={{ width: `${sectionEAnimation.progressPercent}%` }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
 
             {/* Main Glass Panel for Steps */}
             <div className="glass-panel-heavy p-8 sm:p-12 mb-20">
-              {/* Steps Grid */}
-              <motion.div
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-10%" }}
-                variants={{
-                  visible: { transition: { staggerChildren: 0.15 } }
-                }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-              >
+              {/* Steps - Single step visible at a time */}
+              <div className="relative min-h-[300px]">
                 {[
                   {
+                    index: 1,
                     label: "01",
                     title: "Online Request",
-                    body: "원하시는 시술 부위와 스타일을 선택하고 대면 상담 요청을 접수합니다."
+                    body: "원하시는 시술 부위와 스타일을 선택하고 대면 상담 요청을 접수합니다.",
                   },
                   {
+                    index: 2,
                     label: "02",
                     title: "In-Person Consultation",
-                    body: "대면 상담을 통해 디자인 방향, 시술 가능 여부, 세부 조건을 확인합니다."
+                    body: "대면 상담을 통해 디자인 방향, 시술 가능 여부, 세부 조건을 확인합니다.",
                   },
                   {
+                    index: 3,
                     label: "03",
                     title: "Decision",
-                    body: "상담 결과에 따라 시술 진행 여부가 결정되며, 상황에 따라 시술이 제한되거나 거절될 수 있습니다."
+                    body: "상담 결과에 따라 시술 진행 여부가 결정되며, 상황에 따라 시술이 제한되거나 거절될 수 있습니다.",
                   },
                   {
+                    index: 4,
                     label: "04",
                     title: "Tattoo Session",
-                    body: "시술이 확정된 경우에 한해 일정 협의 후 시술이 진행됩니다."
-                  }
+                    body: "시술이 확정된 경우에 한해 일정 협의 후 시술이 진행됩니다.",
+                  },
                 ].map((step) => (
                   <motion.div
                     key={step.label}
-                    variants={{
-                      hidden: { opacity: 0, y: 30 },
-                      visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+                    className="absolute inset-0 glass-card-hover group p-8 rounded-[2rem]"
+                    animate={{ opacity: sectionEAnimation.getStepOpacity(step.index) }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    style={{
+                      pointerEvents:
+                        sectionEAnimation.getStepOpacity(step.index) > 0.5 ? "auto" : "none",
                     }}
-                    className="glass-card-hover group relative p-8 rounded-[2rem]"
                   >
                     <span className="text-6xl font-bold text-gold-antique/20 absolute top-4 right-6 select-none group-hover:text-gold-antique/40 transition-colors">
                       {step.label}
@@ -602,7 +710,7 @@ export default function HomePage() {
                     </div>
                   </motion.div>
                 ))}
-              </motion.div>
+              </div>
             </div>
 
             {/* Bottom Interaction */}

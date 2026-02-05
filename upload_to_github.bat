@@ -14,8 +14,8 @@ git commit -m "feat: implement FAQ, Contact page and update Home consultation fl
 
 echo [4/5] Configuring Remote...
 :: Try adding, if fails (already exists), try setting url
-git remote add origin https://github.com/cafeina3325-lab/Flying3.git 2>nul
-git remote set-url origin https://github.com/cafeina3325-lab/Flying3.git
+git remote add origin https://github.com/cafeina3325-lab/Flying2.git 2>nul
+git remote set-url origin https://github.com/cafeina3325-lab/Flying2.git
 
 echo [5/5] Pushing to GitHub (main branch)...
 git branch -M main
