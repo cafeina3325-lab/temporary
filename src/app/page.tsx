@@ -1,22 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import Footer from "@/components/Footer";
+import { useEffect } from "react";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import Background3D from "@/components/Background3D";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
-import { GENRES, Genre, MOCK_PORTFOLIO } from "@/app/constants";
-import ScrollReveal from "@/components/ScrollReveal";
-import CustomCursor from "@/components/CustomCursor";
-import NavBar from "@/components/NavBar"; // New Navbar
+import NavBar from "@/components/NavBar";
+import Footer from "@/components/Footer";
+import Background3D from "@/components/Background3D";
 import MilkyWayEffect from "@/components/MilkyWayEffect";
 import TwinklingStars from "@/components/TwinklingStars";
+import CustomCursor from "@/components/CustomCursor";
 import DraggableScrollContainer from "@/components/DraggableScrollContainer";
-import { useSectionCAnimation } from "@/hooks/useSectionCAnimation";
-import { useSectionDAnimation } from "@/hooks/useSectionDAnimation";
-import { useSectionEAnimation } from "@/hooks/useSectionEAnimation";
+import RandomStreamMarquee from "@/components/RandomStreamMarquee";
+import { GENRES, Genre, MOCK_PORTFOLIO } from "@/app/constants";
 
 // --- Local Preview Components ---
 
@@ -49,26 +46,26 @@ function GenrePreviewCard({ genre }: { genre: Genre }) {
   return (
     <Link
       href={href}
-      className="group relative h-[12rem] sm:h-[15rem] perspective-1000 w-full block"
+      className="group relative w-full block"
     >
-      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[2rem] border border-white/10 bg-white/[0.08] backdrop-blur-md transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:bg-white/[0.12] group-hover:border-[#D6C23D]/28 group-hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] overflow-hidden">
+      <div className="relative h-[180px] sm:h-[220px] lg:h-[240px] flex flex-col items-center justify-center rounded-[2rem] border border-white/10 bg-white/[0.08] backdrop-blur-md transition-all duration-500 ease-out group-hover:bg-white/[0.12] group-hover:border-[#D6C23D]/28 group-hover:shadow-[0_0_30px_rgba(255,215,0,0.4)] overflow-hidden">
         {/* Background Image Layer */}
         <div className="absolute inset-0 z-0">
           <Image
             src={imageSrc}
             alt={displayName}
             fill
-            className="object-cover transition-all duration-700 ease-out opacity-20 grayscale scale-110 group-hover:opacity-100 group-hover:grayscale-0 group-hover:scale-100"
+            className="object-cover transition-all duration-700 ease-out opacity-20 grayscale group-hover:opacity-100 group-hover:grayscale-0"
             sizes="(max-width: 640px) 50vw, 25vw"
           />
           {/* Dark Overlay Gradient to ensure text pop */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20 group-hover:via-black/20 group-hover:to-transparent transition-all duration-500"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
         </div>
 
         {/* Content Layer (z-10 to stay on top) */}
         <div className="relative z-10 flex flex-col items-center">
-          <div className="w-8 h-[2px] bg-white/20 mb-5 group-hover:w-16 group-hover:bg-[#FFD700] transition-all duration-500 shadow-sm"></div>
-          <span className="text-sm sm:text-base font-medium group-hover:font-extrabold uppercase tracking-[0.25em] text-white-muted group-hover:text-white-main transition-all duration-300 text-center px-4 leading-relaxed group-hover:drop-shadow-[0_4px_4px_rgba(0,0,0,1)]">
+          <div className="w-8 h-[2px] bg-white/20 mb-5 group-hover:bg-[#FFD700] transition-all duration-500 shadow-sm"></div>
+          <span className="text-sm sm:text-base font-medium uppercase tracking-[0.25em] text-white-muted group-hover:text-white-main transition-all duration-300 text-center px-4 leading-relaxed">
             {displayName}
           </span>
         </div>
@@ -77,311 +74,83 @@ function GenrePreviewCard({ genre }: { genre: Genre }) {
   );
 }
 
-// ... existing components ...
 
 export default function HomePage() {
-
-
-  // Interaction State removed as effects are now always on
-
-
+  // Scroll Restoration Logic (ScrollToTop) - Preserved
   useEffect(() => {
-    const sections = ["section-a", "section-b", "section-c"];
-    let isScrolling = false;
-    let currentSectionIndex = 0;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (isScrolling) {
-        e.preventDefault();
-        return;
-      }
-
-      const scrollY = window.scrollY;
-      const sectionC = document.getElementById("section-c");
-
-      if (!sectionC) return;
-
-      const sectionCTop = sectionC.getBoundingClientRect().top + scrollY;
-
-      // If we are significantly below Section C (standard flow zone)
-      if (scrollY > sectionCTop + 50) {
-        return;
-      }
-
-      // We are in or near the Snap Zone (A, B, C)
-      if (e.deltaY > 0) {
-        // --- SCROLLING DOWN ---
-
-        // If at C (last snap point), allow default scroll to flow into D
-        if (currentSectionIndex >= sections.length - 1) {
-          // Check if we are physically at C before releasing (sync issue prevention)
-          const diff = Math.abs(scrollY - sectionCTop);
-          if (diff < 50) return; // At C, let it scroll naturally
-        }
-
-        // If at A or B, snap to next
-        if (currentSectionIndex < sections.length - 1) {
-          e.preventDefault();
-          const nextIndex = currentSectionIndex + 1;
-          scrollToSection(nextIndex);
-        }
-      } else {
-        // --- SCROLLING UP ---
-
-        // If at A, prevent overscroll (optional, but good for snap feel)
-        if (currentSectionIndex <= 0 && scrollY < 50) {
-          return; // Let default handle bouncing or top
-        }
-
-        // If in flow below C, but scrolling up reaches C
-        // (Handled by the initial check: if scrollY > sectionTop + 50 return)
-
-        // If we are at C or B, snap up
-        // Ensure we are not just scrolling within C content if C was taller (C is 100vh)
-
-        e.preventDefault();
-        const prevIndex = Math.max(0, currentSectionIndex - 1);
-        scrollToSection(prevIndex);
-      }
-    };
-
-    const scrollToSection = (index: number) => {
-      if (index < 0 || index >= sections.length) return;
-
-      isScrolling = true;
-      currentSectionIndex = index;
-
-      const targetId = sections[index];
-      const targetEl = document.getElementById(targetId);
-
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: "smooth" });
-      }
-
-      setTimeout(() => {
-        isScrolling = false;
-      }, 800);
-    };
-
-    const syncSectionIndex = () => {
-      const scrollY = window.scrollY;
-      let minDiff = Infinity;
-      let foundIndex = 0;
-
-      sections.forEach((id, idx) => {
-        const el = document.getElementById(id);
-        if (el) {
-          const top = el.getBoundingClientRect().top + window.scrollY;
-          const diff = Math.abs(scrollY - top);
-          if (diff < minDiff) {
-            minDiff = diff;
-            foundIndex = idx;
-          }
-        }
-      });
-      currentSectionIndex = foundIndex;
-    };
-
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("scroll", syncSectionIndex);
-
-    syncSectionIndex();
-
-    return () => {
-      window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("scroll", syncSectionIndex);
-    };
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
   }, []);
 
-  // --- Sticky Hero Logic ---
-  const heroWrapperRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroWrapperRef,
-    offset: ["start start", "end start"],
-  });
-
-  const titleOpacity = useTransform(scrollYProgress, [0.8, 0.95], [1, 0]);
-  const subOpacity1 = useTransform(scrollYProgress, [0.85, 0.98], [1, 0]);
-  const subOpacity2 = useTransform(scrollYProgress, [0.88, 1], [1, 0]);
-
-  const titleY = useTransform(scrollYProgress, [0.8, 1], ["0%", "-20%"]);
-  const subY = useTransform(scrollYProgress, [0.8, 1], ["0%", "-30%"]);
-
-  // --- Section C Animation ---
-  const sectionCRef = useRef<HTMLElement>(null);
-  const sectionCAnimation = useSectionCAnimation(sectionCRef);
-
-  // --- Section D Animation ---
-  const sectionDRef = useRef<HTMLElement>(null);
-  const sectionDAnimation = useSectionDAnimation(sectionDRef, GENRES.length, {
-    mobile: 2,
-    tablet: 3,
-    desktop: 4,
-  });
-
-  // --- Section E Animation ---
-  const sectionERef = useRef<HTMLElement>(null);
-  const sectionEAnimation = useSectionEAnimation(sectionERef, 4);
-
   return (
-    <>
+    <div className="min-h-screen bg-black text-white selection:bg-[#D6BE8A] selection:text-black font-sans">
       <CustomCursor isActive={true} />
-      {/* Background Effects (Always Active) */}
-      <Background3D isActive={true} />
-      <MilkyWayEffect isVisible={true} />
-      {/* Stars must be after Background3D to be on top if z-indexes conflict, though z-1 should handle it */}
-      <TwinklingStars isActive={true} />
 
-      <main className="relative z-10 w-full h-full overflow-x-hidden">
-        <NavBar />
-        <div ref={heroWrapperRef} className="relative z-0">
-          {/* Sticky Text Layer */}
-          <div className="sticky top-0 h-screen flex flex-col justify-center items-start z-30 pointer-events-none overflow-hidden">
-            <div className="w-full px-4 md:px-6 lg:px-8 pl-4 md:pl-6 lg:pl-8 border-l-4 border-[#D6BE8A] ml-4 md:ml-6 lg:ml-8">
-              <motion.h1
-                style={{ opacity: titleOpacity, y: titleY }}
-                className="text-5xl sm:text-6xl md:text-[6.75rem] lg:text-[12rem] font-thin tracking-tighter text-white-main leading-[0.9]"
-              >
+      {/* Global Background Effects Layer - z-0 */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <Background3D isActive={true} />
+        <MilkyWayEffect isVisible={true} />
+        <TwinklingStars isActive={true} />
+      </div>
+
+      {/* Navigation - z-50 */}
+      <NavBar />
+
+      {/* Main Content - z-10 */}
+      <main className="relative z-10 w-full">
+
+        {/* --- STICKY WRAPPER: SECTION A & B --- */}
+        {/* Text persists across A and B. Video scrolls away with A. */}
+        <div className="relative">
+
+          {/* Sticky Text Layer - z-50 */}
+          {/* Stays fixed while parent (A+B wrapper) is in view */}
+          <div className="absolute top-0 left-0 w-full h-screen flex flex-col justify-center items-start z-50 pointer-events-none pb-20">
+            <style>{`
+              @media (min-width: 1024px) and (max-width: 1439px) {
+                .section-a-title { font-size: 6.75rem !important; }
+                .section-a-subtitle { font-size: 1.125rem !important; }
+              }
+              @media (min-width: 1440px) {
+                .section-a-title { font-size: 9rem !important; }
+                .section-a-subtitle { font-size: 1.125rem !important; }
+              }
+            `}</style>
+            <div
+              className="w-full px-4 md:px-6 lg:px-8 pl-4 md:pl-6 lg:pl-8 border-l-4 border-[#D6BE8A] ml-4 md:ml-6 lg:ml-8"
+            >
+              <h1 className="font-playfair section-a-title text-5xl sm:text-6xl md:text-[6.75rem] lg:text-[12rem] font-thin tracking-tighter text-white-main leading-[0.9]">
                 <span className="font-bold tracking-tight text-[#D6BE8A] drop-shadow-[0_0_20px_rgba(214,190,138,0.7)]">FLYING</span>
                 <br />
-                <span className="font-medium tracking-tighter text-white-main mix-blend-overlay">
-                  STUDIO
-                </span>
-              </motion.h1>
+                <span className="font-medium tracking-tighter text-white-main mix-blend-overlay">STUDIO</span>
+              </h1>
             </div>
-
-            <motion.p
-              style={{ opacity: subOpacity1, y: subY }}
-              className="mt-6 md:mt-8 lg:mt-10 mx-4 md:mx-6 lg:mx-8 ml-4 md:ml-6 lg:ml-8 text-white-muted text-sm md:text-lg lg:text-xl font-light tracking-[0.05em] max-w-xs md:max-w-sm lg:max-w-md xl:max-w-xl 2xl:max-w-2xl leading-relaxed"
+            <p
+              className="section-a-subtitle mt-6 md:mt-8 lg:mt-10 mx-4 md:mx-6 lg:mx-8 ml-4 md:ml-6 lg:ml-8 text-white-muted text-sm md:text-lg lg:text-xl font-light tracking-[0.05em] max-w-xs md:max-w-sm lg:max-w-md xl:max-w-xl 2xl:max-w-2xl leading-relaxed"
             >
               이 세상을 바늘로 그리는 사람들
-            </motion.p>
-
-            <motion.div
-              style={{ opacity: subOpacity2, y: subY }}
-              className="ml-4 md:ml-6 lg:ml-8 mt-2 text-gold-antique text-xs md:text-sm lg:text-sm tracking-[0.2em] block mx-4 md:mx-6 lg:mx-8"
+            </p>
+            <div
+              className="font-bebas ml-4 md:ml-6 lg:ml-8 mt-2 text-gold-antique text-xs md:text-sm lg:text-sm tracking-[0.2em] block mx-4 md:mx-6 lg:mx-8"
             >
               ARTIST COLLECTIVE · INCHEON
-            </motion.div>
+            </div>
           </div>
 
-          {/* Section A - Hero (Background Only) */}
+          {/* --- SECTION A: HERO --- */}
+          {/* Relative so it scrolls up and video disappears */}
           <section
             id="section-a"
-            className="relative -mt-[100vh] min-h-screen md:min-h-[70vh] lg:min-h-[85vh] flex flex-col justify-center items-start rounded-none md:rounded-2xl lg:rounded-3xl overflow-hidden bg-no-repeat bg-fixed z-10"
-            style={{
-              backgroundImage: "url(/placeholders/event-hero.jpg)",
-              // sm-phone base: show 50% of image
-              backgroundSize: "200vw auto",
-              backgroundPosition: "top center",
-            }}
+            className="relative w-full h-screen overflow-hidden z-0"
           >
-            {/* Styles kept same as before */}
-            <style>{`
-              /* sm-phone: 376px - 639px */
-              @media (min-width: 376px) and (max-width: 639px) {
-                section[style*="event-hero.jpg"] {
-                  min-height: 80vh !important;
-                  background-size: 200vw auto !important;
-                  background-position: top center !important;
-                }
-              }
-  
-              /* lg-phone: 640px - 767px */
-              @media (min-width: 640px) and (max-width: 767px) {
-                section[style*="event-hero.jpg"] {
-                  min-height: 85vh !important;
-                  background-size: 133.333vw auto !important;
-                  background-position: top center !important;
-                }
-              }
-  
-              /* tablet: 768px - 1023px */
-              @media (min-width: 768px) and (max-width: 1023px) {
-                section[style*="event-hero.jpg"] {
-                  min-height: 90vh !important;
-                  background-size: 100vw auto !important;
-                  background-position: top center !important;
-                }
-              }
-  
-              /* sm-desktop: 1024px - 1439px */
-              @media (min-width: 1024px) and (max-width: 1439px) {
-                section[style*="event-hero.jpg"] {
-                  min-height: 95vh !important;
-                  background-size: 100vw auto !important;
-                  background-position: top center !important;
-                  background-repeat: no-repeat !important;
-                }
-              }
-  
-              /* lg-desktop: 1440px+ */
-              @media (min-width: 1440px) {
-                section[style*="event-hero.jpg"] {
-                  min-height: 100vh !important;
-                  background-size: 100vw auto !important;
-                  background-position: top center !important;
-                  background-repeat: no-repeat !important;
-                }
-              }
-            `}</style>
-            {/* Dark overlay for text visibility */}
-            <div className="absolute inset-0 bg-black/60"></div>
-
-            {/* Text removed from here, moved to sticky container */}
-          </section>
-
-          {/* Section B - BG Video (Full Width) */}
-          <section
-            className="relative motion-section w-full bg-gradient-dark-depth overflow-hidden z-10"
-            id="section-b"
-          >
-            <style>{`
-              /* sm-phone: 376px - 639px */
-              @media (min-width: 376px) and (max-width: 639px) {
-                section.motion-section {
-                  min-height: 80vh !important;
-                  background-size: 200vw auto !important;
-                }
-              }
-  
-              /* lg-phone: 640px - 767px */
-              @media (min-width: 640px) and (max-width: 767px) {
-                section.motion-section {
-                  min-height: 85vh !important;
-                  background-size: 133.333vw auto !important;
-                }
-              }
-  
-              /* tablet: 768px - 1023px */
-              @media (min-width: 768px) and (max-width: 1023px) {
-                section.motion-section {
-                  min-height: 90vh !important;
-                  background-size: 100vw auto !important;
-                }
-              }
-  
-              /* sm-desktop: 1024px - 1439px */
-              @media (min-width: 1024px) and (max-width: 1439px) {
-                section.motion-section {
-                  min-height: 95vh !important;
-                  background-size: 100vw auto !important;
-                }
-              }
-  
-              /* lg-desktop: 1440px+ */
-              @media (min-width: 1440px) {
-                section.motion-section {
-                  min-height: 100vh !important;
-                  background-size: 100vw auto !important;
-                }
-              }
-            `}</style>
-
-            {/* BG Video Container */}
-            <div className="absolute inset-0">
+            {/* Background Video */}
+            <div
+              className="absolute inset-0 z-0"
+            >
               <video
-                className="absolute inset-0 w-full h-full object-cover opacity-100"
+                className="absolute inset-0 w-full h-full min-w-full min-h-full object-cover opacity-100"
                 autoPlay
                 muted
                 loop
@@ -389,77 +158,55 @@ export default function HomePage() {
               >
                 <source src="/placeholders/arirang.mp4" type="video/mp4" />
               </video>
-              {/* Dark Overlay (58% Black) */}
-              <div className="absolute inset-0 bg-black/58"></div>
-              <div className="absolute inset-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(181,154,90,0.1),transparent_70%)] mix-blend-overlay"></div>
+              {/* Dark overlay */}
+              <div className="absolute inset-0 bg-black/60"></div>
             </div>
           </section>
+
+
+          {/* --- SECTION B: PORTFOLIO MARQUEE --- */}
+          {/* Relative so it continues flow after A */}
+          <section
+            id="section-b"
+            className="relative w-full h-screen overflow-hidden z-20"
+          >
+            {/* Wrapper for Animation (Zoom Out / Fade Out) */}
+            <div
+              className="w-full h-full relative bg-gradient-dark-depth origin-center"
+            >
+              {/* Background Layer */}
+              <div className="absolute inset-0 z-0">
+                {/* Random Stream Marquee (Background) */}
+                <RandomStreamMarquee />
+              </div>
+            </div>
+          </section>
+
         </div>
 
-        {/* Scene C - Event (Float Glass Panel) */}
+        {/* --- SECTION C: EVENT (Relative, scroll under B) --- */}
         <section
-          ref={sectionCRef}
-          className="min-h-screen event-section flex items-center justify-center py-32 relative perspective-1000"
+          className="relative h-screen overflow-hidden py-0 flex items-center justify-center perspective-1000 z-30"
           id="section-c"
         >
-          <style>{`
-            /* Responsive section heights - all modes */
-            @media (min-width: 376px) and (max-width: 639px) {
-              section.event-section { min-height: 80vh !important; }
-            }
-            @media (min-width: 640px) and (max-width: 767px) {
-              section.event-section { min-height: 85vh !important; }
-            }
-            @media (min-width: 768px) and (max-width: 1023px) {
-              section.event-section { min-height: 90vh !important; }
-            }
-            @media (min-width: 1024px) and (max-width: 1439px) {
-              section.event-section { min-height: 95vh !important; }
-            }
-            @media (min-width: 1440px) {
-              section.event-section { min-height: 100vh !important; }
-            }
-          `}</style>
-          <div className="w-full max-w-6xl px-4 sm:px-6">
-            {/* Header floating outside - Left Aligned & Standardized */}
-            <motion.div
-              className="mb-12"
-              animate={{ opacity: sectionCAnimation.titleOpacity }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
+          <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6">
               <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
                 이달의 이벤트
               </h2>
-              <span className="block text-gold-active text-base tracking-[0.5em] uppercase mt-4 font-light opacity-80">
+              <span className="font-bebas block text-gold-active text-base tracking-[0.5em] uppercase mt-4 font-light opacity-80">
                 MONTHLY DROPS
               </span>
-            </motion.div>
+            </div>
 
-            {/* Main Glass Panel */}
-            <div className="glass-panel-heavy p-6 sm:p-10">
-
-              {/* Horizontal Scroll Grid (2 rows) */}
-              <motion.div
-                className="w-full mb-8"
-                animate={{
-                  opacity: sectionCAnimation.cardsOpacity,
-                  scale: sectionCAnimation.cardsScale
-                }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-              >
+            <div className="glass-panel-heavy p-4 sm:p-6">
+              <div className="w-full mb-8">
                 <DraggableScrollContainer className="flex overflow-x-auto pb-4 gap-4 scrollbar-hide snap-x">
                   <div className="grid grid-rows-1 grid-flow-col gap-4 w-max">
                     {MOCK_PORTFOLIO.slice(0, 16).map((item, index) => (
-                      <motion.div
+                      <div
                         key={item.id}
                         className="glass-card-hover w-[180px] sm:w-[220px] aspect-[4/5] relative rounded-lg group snap-start"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{
-                          delay: sectionCAnimation.getCardDelay(index),
-                          duration: 0.5,
-                          ease: "easeOut"
-                        }}
                       >
                         <Image
                           src={item.image}
@@ -471,15 +218,14 @@ export default function HomePage() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
                           <span className="text-xs text-white/80 font-medium">{item.artist}</span>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </DraggableScrollContainer>
-              </motion.div>
+              </div>
 
-              {/* Notice Box */}
               <div className="p-6 rounded-xl bg-black/50 border border-gold-soft/30 mb-8">
-                <h3 className="text-gold-active font-bold mb-4 tracking-widest text-sm uppercase">Notice</h3>
+                <h3 className="font-bebas text-gold-active font-bold mb-4 tracking-widest text-sm uppercase">Notice</h3>
                 <ul className="text-sm text-[#D6BE8A]/90 space-y-3 leading-relaxed font-light">
                   <li className="flex items-start gap-3">
                     <span className="text-[#D6BE8A] mt-1.5 w-1 h-1 rounded-full bg-current block shrink-0"></span>
@@ -492,253 +238,116 @@ export default function HomePage() {
                 </ul>
               </div>
 
-              {/* CTA Button */}
-              <motion.div
-                className="text-center"
-                animate={{ opacity: sectionCAnimation.ctaOpacity }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              >
+              <div className="text-center">
                 <Link href="/gallery?tab=portfolio">
-                  <button className="group relative px-10 py-4 sm:px-14 sm:py-5 rounded-full overflow-hidden bg-gold-soft/5 border border-gold-soft hover:border-gold-active hover:shadow-[0_0_20px_rgba(214,190,138,0.3)] text-gold-active transition-all duration-500">
-                    <span className="absolute inset-0 w-full h-full bg-gold-soft/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-out"></span>
+                  <button className="font-bebas group relative px-10 py-4 sm:px-14 sm:py-5 rounded-full overflow-hidden bg-gold-soft/5 border border-gold-soft hover:border-gold-active hover:shadow-[0_0_20px_rgba(214,190,138,0.3)] text-gold-active transition-all duration-500">
                     <span className="relative z-10 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase">
                       View All Events
                     </span>
                   </button>
                 </Link>
-              </motion.div>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Scene D - Genre (Floating Tiles) */}
         <section
-          ref={sectionDRef}
-          className="min-h-screen genre-section flex items-center justify-center py-32 relative"
+          className="relative h-screen overflow-hidden py-0 flex items-center justify-center"
           id="section-d"
         >
-          <style>{`
-            /* Responsive section heights - all modes */
-            @media (min-width: 376px) and (max-width: 639px) {
-              section.genre-section { min-height: 80vh !important; }
-            }
-            @media (min-width: 640px) and (max-width: 767px) {
-              section.genre-section { min-height: 85vh !important; }
-            }
-            @media (min-width: 768px) and (max-width: 1023px) {
-              section.genre-section { min-height: 90vh !important; }
-            }
-            @media (min-width: 1024px) and (max-width: 1439px) {
-              section.genre-section { min-height: 95vh !important; }
-            }
-            @media (min-width: 1440px) {
-              section.genre-section { min-height: 100vh !important; }
-            }
-          `}</style>
-          <div className="w-full max-w-6xl px-4 sm:px-6">
-            <div className="flex flex-col items-start mb-12">
-              <motion.div
-                animate={{ opacity: sectionDAnimation.titleOpacity }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{ clipPath: sectionDAnimation.titleClipPath }}
-                className="relative"
-              >
-                <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
-                  STYLES
-                </h2>
-                {/* Underline for backward scroll */}
-                <motion.div
-                  className="absolute bottom-0 left-0 h-[2px] bg-[#D6BE8A]"
-                  animate={{ width: `${sectionDAnimation.titleUnderlineWidth}%` }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                />
-              </motion.div>
+          <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
+            <div className="flex flex-col items-center mb-4 shrink-0">
+              <h2 className="font-bebas text-2xl sm:text-4xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b border-[#D6BE8A]/60 py-4 px-8 inline-block uppercase text-center">
+                STYLES
+              </h2>
             </div>
 
-            {/* Floating Tiles Container */}
-            <div className="relative">
-              {/* Background Glow */}
-              <div className="absolute inset-0 bg-[#3A2A1F]/20 blur-[100px] rounded-full pointer-events-none"></div>
+            <div className="relative flex-1 flex flex-col justify-center min-h-0">
 
-              <div className="glass-panel-heavy p-8 sm:p-12">
-                <motion.div
-                  className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 ${sectionDAnimation.gridSpacing} ${sectionDAnimation.gridAlignment}`}
-                  animate={{
-                    gap: sectionDAnimation.gridSpacing === "gap-3" ? "0.75rem" : "1.5rem",
-                  }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
+              <div className="glass-panel-heavy p-4 overflow-y-auto scrollbar-hide">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                   {GENRES.map((g, i) => {
-                    // Calculate row index (0-based) using hook's currentColumns
-                    const rowIndex = Math.floor(i / sectionDAnimation.currentColumns);
-
                     return (
-                      <motion.div
+                      <div
                         key={g}
-                        animate={{ opacity: sectionDAnimation.getRowOpacity(rowIndex) }}
-                        transition={{
-                          delay: sectionDAnimation.getRowDelay(rowIndex),
-                          duration: 0.5,
-                          ease: "easeOut",
-                        }}
+                        className="w-full"
                       >
                         <GenrePreviewCard genre={g} />
-                      </motion.div>
+                      </div>
                     );
                   })}
-                </motion.div>
-              </div>
-
-              <div className="mt-12 text-center">
-                <p className="text-white-dim text-xs tracking-[0.3em] font-light">
-                  장르를 선택하면 해당 챕터로 이동합니다.
-                </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Scene E - Consultation Flow (Grounded) */}
+        {/* Scene E - Consultation Flow */}
         <section
-          ref={sectionERef}
-          className="min-h-[80vh] flow-section flex items-center justify-center py-32 relative"
+          className="relative h-screen overflow-hidden py-0 flex flex-col items-center justify-center"
           id="section-e"
         >
-          <style>{`
-            /* Responsive section heights - all modes */
-            @media (min-width: 376px) and (max-width: 639px) {
-              section.flow-section { min-height: 80vh !important; }
-            }
-            @media (min-width: 640px) and (max-width: 767px) {
-              section.flow-section { min-height: 85vh !important; }
-            }
-            @media (min-width: 768px) and (max-width: 1023px) {
-              section.flow-section { min-height: 90vh !important; }
-            }
-            @media (min-width: 1024px) and (max-width: 1439px) {
-              section.flow-section { min-height: 95vh !important; }
-            }
-            @media (min-width: 1440px) {
-              section.flow-section { min-height: 100vh !important; }
-            }
-          `}</style>
-          <div className="w-full max-w-6xl px-4 sm:px-6">
-            {/* Title with pinning effect */}
-            <motion.div
-              className={`flex flex-col items-start mb-16 ${sectionEAnimation.titlePinned ? "sticky top-1/2 -translate-y-1/2 z-20" : ""
-                }`}
-              animate={{ opacity: sectionEAnimation.titleOpacity }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-              <h2 className="text-3xl sm:text-5xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b-2 border-[#D6BE8A]/60 py-8 px-12 inline-block uppercase text-center">
-                Consultation Flow
-              </h2>
-              <span className="block text-gold-soft/80 text-sm sm:text-base tracking-[0.05em] mt-6 font-light break-keep">
-                모든 시술은 대면 상담을 통해 결정됩니다.
-              </span>
+          <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
+            <div className="flex flex-col gap-2 h-full justify-center">
 
-              {/* Progress Indicator (only visible during backward scroll) */}
-              {sectionEAnimation.showProgressIndicator && (
-                <motion.div
-                  className="mt-6 w-full max-w-md"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="h-1 bg-gold-soft/20 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gold-active"
-                      animate={{ width: `${sectionEAnimation.progressPercent}%` }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                    />
+              <div className="text-left shrink-0">
+                <h2 className="font-bebas text-2xl sm:text-4xl font-bold tracking-widest text-[#D6BE8A] drop-shadow-[0_0_25px_rgba(214,190,138,0.3)] border-b border-[#D6BE8A]/60 py-4 px-8 inline-block uppercase">
+                  Consultation Flow
+                </h2>
+                <span className="font-josefin block text-gold-soft/80 text-xs sm:text-sm tracking-[0.05em] mt-2 font-light">
+                  모든 시술은 대면 상담을 통해 결정됩니다.
+                </span>
+              </div>
+
+              <div className="flex flex-col flex-1 justify-center min-h-0">
+                <div className="glass-panel-heavy p-3 overflow-y-auto scrollbar-hide max-h-[50vh]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {[
+                      { index: 1, label: "01", title: "Online Request", body: "원하시는 시술 부위와 스타일을 선택하고 대면 상담 요청을 접수합니다." },
+                      { index: 2, label: "02", title: "In-Person Consultation", body: "대면 상담을 통해 디자인 방향, 시술 가능 여부, 세부 조건을 확인합니다." },
+                      { index: 3, label: "03", title: "Decision", body: "상담 결과에 따라 시술 진행 여부가 결정되며, 상황에 따라 시술이 제한되거나 거절될 수 있습니다." },
+                      { index: 4, label: "04", title: "Tattoo Session", body: "시술이 확정된 경우에 한해 일정 협의 후 시술이 진행됩니다." },
+                    ].map((step, idx) => (
+                      <div
+                        key={step.label}
+                        className="relative glass-card-hover group p-3 rounded-lg min-h-[80px] flex flex-col justify-center"
+                      >
+                        <span className="font-bebas text-2xl font-bold text-gold-antique/20 absolute top-2 right-3 select-none group-hover:text-gold-antique/40 transition-colors">
+                          {step.label}
+                        </span>
+                        <div className="relative z-10 pr-6">
+                          <h3 className="font-bebas text-sm text-gold-soft font-medium tracking-wide mb-0.5 group-hover:text-gold-active transition-colors">
+                            {step.title}
+                          </h3>
+                          <p className="font-josefin text-[10px] text-white-muted leading-tight break-keep font-light group-hover:text-white-main transition-colors line-clamp-2">
+                            {step.body}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </motion.div>
-              )}
-            </motion.div>
+                </div>
 
-            {/* Main Glass Panel for Steps */}
-            <div className="glass-panel-heavy p-8 sm:p-12 mb-20">
-              {/* Steps - Single step visible at a time */}
-              <div className="relative min-h-[300px]">
-                {[
-                  {
-                    index: 1,
-                    label: "01",
-                    title: "Online Request",
-                    body: "원하시는 시술 부위와 스타일을 선택하고 대면 상담 요청을 접수합니다.",
-                  },
-                  {
-                    index: 2,
-                    label: "02",
-                    title: "In-Person Consultation",
-                    body: "대면 상담을 통해 디자인 방향, 시술 가능 여부, 세부 조건을 확인합니다.",
-                  },
-                  {
-                    index: 3,
-                    label: "03",
-                    title: "Decision",
-                    body: "상담 결과에 따라 시술 진행 여부가 결정되며, 상황에 따라 시술이 제한되거나 거절될 수 있습니다.",
-                  },
-                  {
-                    index: 4,
-                    label: "04",
-                    title: "Tattoo Session",
-                    body: "시술이 확정된 경우에 한해 일정 협의 후 시술이 진행됩니다.",
-                  },
-                ].map((step) => (
-                  <motion.div
-                    key={step.label}
-                    className="absolute inset-0 glass-card-hover group p-8 rounded-[2rem]"
-                    animate={{ opacity: sectionEAnimation.getStepOpacity(step.index) }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    style={{
-                      pointerEvents:
-                        sectionEAnimation.getStepOpacity(step.index) > 0.5 ? "auto" : "none",
-                    }}
-                  >
-                    <span className="text-6xl font-bold text-gold-antique/20 absolute top-4 right-6 select-none group-hover:text-gold-antique/40 transition-colors">
-                      {step.label}
-                    </span>
-                    <div className="relative z-10 pt-8">
-                      <h3 className="text-xl text-gold-soft font-medium tracking-wide mb-4 group-hover:text-gold-active transition-colors">
-                        {step.title}
-                      </h3>
-                      <p className="text-sm text-white-muted leading-loose break-keep font-light group-hover:text-white-main transition-colors">
-                        {step.body}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
+                <div className="text-center mt-2 shrink-0">
+                  <p className="font-josefin text-[10px] text-stone-400 mb-1 tracking-wide font-light">
+                    온라인 접수는 시술 예약이 아닙니다.
+                  </p>
+                  <Link href="/contact">
+                    <button className="font-bebas group relative px-6 py-2 sm:px-8 sm:py-2.5 rounded-full overflow-hidden bg-gold-soft/5 border border-gold-soft hover:border-gold-active hover:shadow-[0_0_20px_rgba(214,190,138,0.3)] text-gold-active transition-all duration-500">
+                      <span className="relative z-10 text-[10px] sm:text-xs tracking-[0.2em] font-semibold uppercase">
+                        Request Consultation
+                      </span>
+                    </button>
+                  </Link>
+                </div>
               </div>
             </div>
-
-            {/* Bottom Interaction */}
-            <div className="text-center">
-              <p className="text-sm text-stone-400 mb-10 tracking-wide font-light">
-                온라인 접수는 시술 예약이 아니며, 상담 결과에 따라 시술이 진행되지 않을 수 있습니다.
-              </p>
-
-              <Link href="/contact">
-                <button className="group relative px-10 py-4 sm:px-14 sm:py-5 rounded-full overflow-hidden bg-gold-soft/5 border border-gold-soft hover:border-gold-active hover:shadow-[0_0_20px_rgba(214,190,138,0.3)] text-gold-active transition-all duration-500">
-                  <span className="absolute inset-0 w-full h-full bg-gold-soft/20 scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500 ease-out"></span>
-                  <span className="relative z-10 text-sm sm:text-base tracking-[0.2em] font-semibold uppercase">
-                    Request Consultation
-                  </span>
-                </button>
-              </Link>
-
-              <p className="mt-6 text-[10px] text-white-dim/50 tracking-wider">
-                상담 예약은 로그인 후 진행 가능합니다.
-              </p>
-            </div>
-
           </div>
         </section>
 
-        {/* Agency Style Fat Footer */}
         <Footer />
       </main>
-    </>
+    </div>
   );
 }

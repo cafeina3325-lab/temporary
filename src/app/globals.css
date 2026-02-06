@@ -125,6 +125,7 @@ body {
   margin: 0;
   background: var(--bg-forest-black);
   color: var(--text-white-main);
+  font-family: 'Josefin Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

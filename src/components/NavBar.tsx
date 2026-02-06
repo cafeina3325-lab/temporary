@@ -10,7 +10,7 @@ export default function NavBar() {
 
     return (
         <nav
-            className="fixed top-0 right-0 w-[60%] lg:w-[50%] h-24 z-[9990] hidden md:flex items-center justify-end pr-8 pointer-events-none"
+            className="fixed top-0 right-0 w-[60%] lg:w-[50%] h-16 z-[9990] hidden md:flex items-center justify-end pr-8 pointer-events-none"
             style={{
                 background: `linear-gradient(to right, 
                     rgba(11, 20, 17, 0) 0%, 
@@ -39,7 +39,7 @@ export default function NavBar() {
                         <li key={link.label}>
                             <Link
                                 href={link.href}
-                                className={`text-lg uppercase tracking-[0.2em] transition-all duration-300 relative ${isActive
+                                className={`font-bebas text-lg lg:text-xl uppercase tracking-[0.2em] transition-all duration-300 relative ${isActive
                                     ? "font-extrabold text-[#D6BE8A] drop-shadow-[0_0_10px_rgba(214,190,138,0.6)] after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:w-full after:h-[3px] after:bg-[#D6BE8A] after:blur-[2px] after:shadow-[0_0_10px_#D6BE8A]"
                                     : "font-medium text-white-dim hover:text-white-main hover:scale-105 hover:drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]"
                                     }`}

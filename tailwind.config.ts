@@ -83,6 +83,11 @@ const config: Config = {
                 "gold-glow": "var(--shadow-gold-glow)",
                 "soft-lift": "var(--shadow-soft-lift)",
             },
+            fontFamily: {
+                playfair: ['"Playfair Display"', 'serif'],
+                bebas: ['"Bebas Neue"', 'sans-serif'],
+                josefin: ['"Josefin Sans"', 'sans-serif'],
+            },
             // ANIMATION for SMOKE DRIFT
             animation: {
                 "fog-drift-1": "fog-drift-1 45s ease-in-out infinite alternate",
